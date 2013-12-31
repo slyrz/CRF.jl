@@ -1,5 +1,16 @@
 module CRF
+export
+    Sequence,
+    Features,
+    append!,
+    empty!,
+    label,
+    loglikelihood,
+    loglikelihood_gradient,
+    update,
+    product
 
-# package code goes here
-
-end # module
+include("base.jl")
+include("features.jl")
+include("util.jl")
+end
