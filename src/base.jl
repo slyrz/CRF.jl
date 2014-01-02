@@ -191,7 +191,7 @@ function label(crf::Sequence)
     Q = zeros(crf.d, crf.d)
 
     M = Any[]
-    for t in 2:crf.n
+    for t in 1:crf.n
         for i = 1:crf.d, j = 1:crf.d
             Q[i,j] = crf.M[t][i,j] + d[j]
         end
@@ -208,7 +208,7 @@ function label(crf::Sequence)
     for p in reverse(M)
         push!(result, p[result[end]])
     end
-    return [ crf.Y[i] for i in reverse(result) ]
+    return [ crf.Y[i] for i in reverse(result[2:end]) ]
 end
 
 function label{Tx,Ty}(crfs::Array{Sequence{Tx,Ty},1})
