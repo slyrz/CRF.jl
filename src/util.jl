@@ -3,11 +3,11 @@ import Base.start,
        Base.done,
        Base.ArgumentError
 
-function logsumexp{I<:Number}(x::Array{I,1})
-    r = 0
+function logsumexp{I<:Number}(x::AbstractArray{I})
     m = maximum(x)
-    for v in x
-        r += exp(v - m)
+    r = 0.0
+    for i = 1:endof(x)
+        r += exp(x[i] - m)
     end
     return log(r) + m
 end
@@ -38,9 +38,9 @@ type ProductState
             end
         end
         res.max = [ length(v) for v in res.val ]
-        res.idx = [         1 for v in res.val ]
-        res.sta = [      v[1] for v in res.val ]
-        res.yld = [      v[1] for v in res.val ]
+        res.idx = [ 1 for v in res.val ]
+        res.sta = [ v[1] for v in res.val ]
+        res.yld = [ v[1] for v in res.val ]
         res.p = 1
         return res
     end
