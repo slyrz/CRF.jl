@@ -1,5 +1,4 @@
-import Base.append!,
-       Base.empty!,
+import Base.empty!,
        Base.size,
        Base.convert
 
@@ -11,9 +10,10 @@ type Features
     end
 end
 
-function append!(f::Function,v::Features,itr...)
-    for x in product(itr)
-        v.x[v.i] = f(x) ; v.i += 1
+macro append!(v,w)
+    quote
+        $(esc(v)).x[$(esc(v)).i] = float($(esc(w)))
+        $(esc(v)).i += 1
     end
 end
 
@@ -22,7 +22,7 @@ function empty!(v::Features)
 end
 
 function size(v::Features)
-    length(v.x)
+    size(v.x)
 end
 
 function convert(::Type{Array{Float64,1}}, v::Features)

@@ -2,7 +2,7 @@ module CRF
 export
     Sequence,
     Features,
-    append!,
+    @append!,
     empty!,
     label,
     loglikelihood,
