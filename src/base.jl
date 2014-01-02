@@ -1,3 +1,5 @@
+import Base.ArgumentError
+
 type Sequence{Tx,Ty}
     x::Array{Tx,1} # observation sequence
     y::Array{Ty,1} # label sequence
@@ -19,28 +21,32 @@ type Sequence{Tx,Ty}
     f::Function # function returning feature vector
     F::Array{Float64, 1} # sum of feature vectors 1:n
 
-    function Sequence(x, y, f::Function; Θ=None, σ=50, labels=None)
-
+    function Sequence(x, y, f::Function; Θ=[], labels=[], σ=50.0)
+        # If x are unlabeled observations, the labels keyword must provide the
+        # alphabet from which labels are drawn.
         if isempty(y)
-            @assert !isempty(labels)
+            if isempty(labels)
+                throw(ArgumentError("A label alphabet must be specified for unlabeled observations."))
+            end
         else
-            @assert (length(x) == length(y))
+            if length(x) != length(y)
+                throw(ArgumentError("Labels don't match observation length."))
+            end
         end
 
         res = new()
         res.x = x
         res.y = y
 
-        if !isempty(y)
+        if isempty(labels)
             res.Y = unique(y)
         else
             res.Y = labels
         end
 
         res.f = f
-
+        res.σ = σ
         res.Z = 0.0
-        res.σ = 50.0
 
         res.n, = size(res.x)
         res.d, = size(res.Y)
@@ -50,8 +56,12 @@ type Sequence{Tx,Ty}
         res.α = [ zeros(res.d) for t = 1:res.n ]
         res.β = [ zeros(res.d) for t = 1:res.n ]
 
-        if Θ == None
+        if isempty(Θ)
             Θ = rand(res.k)
+        else
+            if length(Θ) != res.k
+                throw(ArgumentError("Length of Θ doesn't match feature length."))
+            end
         end
 
         res.Θ = Θ
@@ -61,7 +71,6 @@ type Sequence{Tx,Ty}
 
         return res
     end
-
 end
 
 Sequence{Tx,Ty}(x::Array{Tx,1}, y::Array{Ty,1}, f::Function; args...) = Sequence{Tx,Ty}(x, y, f; args...)
