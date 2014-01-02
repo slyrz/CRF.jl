@@ -1,0 +1,32 @@
+using CRF
+using Optim
+
+include("util.jl")
+include("features.jl")
+
+# Load weather data
+X, Y = load("weather.csv")
+
+# Use first 5 sequences for parameter estimation
+crfs = Sequence{XT, YT}[ ]
+for i = 1:5
+    push!(crfs, Sequence{XT, YT}(X[i], Y[i], weather_features))
+end
+
+# Since we are looking for parameters maximizing the loglikelihood function
+# and Optim.optimize performs function minimization, we negate the
+# loglikelihood and it's derivative.
+function f(x::Vector)
+    -loglikelihood(crfs, Θ=x)
+end
+
+function g!(x::Vector, storage::Vector)
+    storage[:] = -loglikelihood_gradient(crfs, Θ=x)
+end
+
+result = optimize(f, g!, crfs[1].Θ, method = :l_bfgs, iterations=15, show_trace=true)
+
+println("Minimum: ", result.f_minimum)
+println("Parameters: ", result.minimum)
+println("f calls: ", result.f_calls)
+println("g calls: ", result.g_calls)
