@@ -54,3 +54,13 @@ s = Sequence(X, feature_vector; labels=unique(Y))
 @test s.Y == unique(Y)
 @test isempty(s.y)
 @test sum(s.F) == 0
+
+
+# Unlabeld data without label alphabet shouldn't work
+@test_throws s = Sequence(X, feature_vector)
+
+# Observation / label mismatch shouldn't work
+@test_throws s = Sequence(X[2:end], Y, feature_vector)
+
+# Feature / weight mismatch shouldn't work
+@test_throws s = Sequence(X, Y, feature_vector; Θ=rand(2))
