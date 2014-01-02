@@ -48,3 +48,9 @@ s = Sequence(X, Y, feature_vector)
 for l in label(s)
     @test l in (true, false)
 end
+
+s = Sequence(X, feature_vector; labels=unique(Y))
+@test s.x == X
+@test s.Y == unique(Y)
+@test isempty(s.y)
+@test sum(s.F) == 0

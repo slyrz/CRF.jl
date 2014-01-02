@@ -19,13 +19,24 @@ type Sequence{Tx,Ty}
     f::Function # function returning feature vector
     F::Array{Float64, 1} # sum of feature vectors 1:n
 
-    function Sequence(x, y, f::Function; Θ=None, σ=50)
-        @assert size(x)[1] == size(y)[1]
+    function Sequence(x, y, f::Function; Θ=None, σ=50, labels=None)
+
+        if isempty(y)
+            @assert !isempty(labels)
+        else
+            @assert (length(x) == length(y))
+        end
 
         res = new()
         res.x = x
         res.y = y
-        res.Y = unique(y)
+
+        if !isempty(y)
+            res.Y = unique(y)
+        else
+            res.Y = labels
+        end
+
         res.f = f
 
         res.Z = 0.0
@@ -50,9 +61,11 @@ type Sequence{Tx,Ty}
 
         return res
     end
+
 end
 
-Sequence{Tx,Ty}(x::Array{Tx,1}, y::Array{Ty,1}, f::Function, args...) = Sequence{Tx,Ty}(x, y, f, args...)
+Sequence{Tx,Ty}(x::Array{Tx,1}, y::Array{Ty,1}, f::Function; args...) = Sequence{Tx,Ty}(x, y, f; args...)
+Sequence{Tx,Ty}(x::Array{Tx,1}, f::Function; labels::Array{Ty,1}=Ty[], args...) = Sequence{Tx,Ty}(x, Ty[], f; labels=labels, args...)
 
 function update(crf::Sequence; Θ=None)
     if (Θ != None)
@@ -94,16 +107,18 @@ function update(crf::Sequence; Θ=None)
     # Constant normalization factor
     crf.Z = logsumexp(crf.α[end])
 
-    # Global Feature Vector
-    crf.F[:] = 0.0
-    for t = 1:crf.n
-        if t == 1
-            v = crf.f(crf.y[t], crf.x, t)
-        else
-            v = crf.f(crf.y[t-1], crf.y[t], crf.x, t)
-        end
-        for i = 1:crf.k
-            crf.F[i] += v[i]
+    if !isempty(crf.y)
+        # Global Feature Vector
+        crf.F[:] = 0.0
+        for t = 1:crf.n
+            if t == 1
+                v = crf.f(crf.y[t], crf.x, t)
+            else
+                v = crf.f(crf.y[t-1], crf.y[t], crf.x, t)
+            end
+            for i = 1:crf.k
+                crf.F[i] += v[i]
+            end
         end
     end
 end
@@ -162,7 +177,6 @@ function loglikelihood_gradient{Tx,Ty}(crfs::Array{Sequence{Tx,Ty},1}; Θ=None)
     sum([ loglikelihood_gradient(crf, Θ=Θ) for crf in crfs ])
 end
 
-# Viterbi algorithm to label crf.x
 function label(crf::Sequence)
     d = zeros(crf.d)
     Q = zeros(crf.d, crf.d)
