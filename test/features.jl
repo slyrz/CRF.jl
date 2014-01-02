@@ -5,16 +5,16 @@ using CRF
 v = Features(100)
 w = Features(100)
 
-# Check if addind features works like it should (you sould be able to access
-# the value of global variables in the anonymous functions)
+# Check if adding features works like it should (you sould be able to access
+# the value of global variables in the append! macro)
 g = true
-append!(v, 1:10, 1:10) do x
-    (g) & ((x[1] < 7) | (x[2] > 4))
+for i = 1:10, j = 1:10
+    @append! v ((g) & ((i < 7) | (j > 4)))
 end
 
 g = false
-append!(w, 1:10, 1:10) do x
-    (g) & ((x[1] < 7) | (x[2] > 4))
+for i = 1:10, j = 1:10
+    @append! w ((g) & ((i < 7) | (j > 4)))
 end
 
 @test (v.i == 101) & (sum(v.x) == 84)
