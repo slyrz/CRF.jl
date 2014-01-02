@@ -11,17 +11,17 @@ end
 function feature_vector(yp::Bool, yt::Bool, x::Array{Array{Float64,1},1}, t::Int32)
     v = Features(4+20+20)
 
-    append!(v, [true, false], [true, false]) do z
-        ((yp == z[1]) & (yt == z[2]))
+    for ypv in [true, false], ytv in [true, false]
+        @append! v ((yp ==ypv) & (yt == ytv))
     end
 
-    append!(v, [true, false], 0.0:0.1:0.9) do z
-        ((yt == z[1]) & (z[2] <= x[t][1] < (z[2] + 0.1)))
+    for ytv in [true, false], range = 0.0:0.1:0.9
+        @append! v ((yt == ytv) & (range <= x[t][1] < (range + 0.1)))
+        @append! v ((yt == ytv) & (range <= x[t][2] < (range + 0.1)))
     end
 
-    append!(v, [true, false], 0.0:0.1:0.9) do z
-        ((yt == z[1]) & (z[2] <= x[t][2] < (z[2] + 0.1)))
-    end
+    @test sum(v.x) != 0
+    @test v.i == length(v.x) + 1
 
     return convert(Array{Float64,1}, v)
 end
