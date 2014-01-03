@@ -3,11 +3,11 @@ typealias YT ASCIIString
 
 const labels = YT[ "sunny", "rainy", "foggy" ]
 
-function weather_features(yt::YT, x::Array{XT,1}, t::Int32)
-    weather_features("", yt, x, t)
+function features(yt::YT, x::AbstractArray{XT}, t::Int32)
+    features("", yt, x, t)
 end
 
-function weather_features(yp::YT, yt::YT, x::Array{XT,1}, t::Int32)
+function features(yp::YT, yt::YT, x::AbstractArray{XT}, t::Int32)
     res = Features(6+9+36+33+84)
 
     for yval in labels

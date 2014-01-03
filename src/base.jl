@@ -16,12 +16,18 @@ type Sequence{Tx,Ty}
     α::Array{Array{Float64, 1}, 1} # forward vectors
     β::Array{Array{Float64, 1}, 1} # backward vectors
 
-    Θ::Array{Float64, 1} # parameters
+    Θ::Array{Float64, 1} # parameters aka feature weights
 
     f::Function # function returning feature vector
     F::Array{Float64, 1} # sum of feature vectors 1:n
 
-    function Sequence(x, y, f::Function; Θ=[], labels=[], σ=50.0)
+    function Sequence{Tx,Ty}(x::AbstractArray{Tx},
+                             y::AbstractArray{Ty},
+                             f::Function;
+                             labels::AbstractArray{Ty}=Ty[],
+                             Θ::AbstractArray{Float64}=Float64[],
+                             σ::Float64=50.0)
+
         # If x are unlabeled observations, the labels keyword must provide the
         # alphabet from which labels are drawn.
         if isempty(y)
@@ -64,24 +70,25 @@ type Sequence{Tx,Ty}
             end
         end
 
-        res.Θ = Θ
+        res.Θ = zeros(res.k)
         res.F = zeros(res.k)
-
-        update(res)
+        update(res, Θ=Θ)
 
         return res
     end
 end
 
-Sequence{Tx,Ty}(x::Array{Tx,1}, y::Array{Ty,1}, f::Function; args...) = Sequence{Tx,Ty}(x, y, f; args...)
-Sequence{Tx,Ty}(x::Array{Tx,1}, f::Function; labels::Array{Ty,1}=Ty[], args...) = Sequence{Tx,Ty}(x, Ty[], f; labels=labels, args...)
+Sequence{Tx,Ty}(x::AbstractArray{Tx}, y::AbstractArray{Ty}, f::Function; args...) = Sequence{Tx,Ty}(x, y, f; args...)
+Sequence{Tx,Ty}(x::AbstractArray{Tx}, f::Function; labels::AbstractArray{Ty}=Ty[], args...) = Sequence{Tx,Ty}(x, Ty[], f; labels=labels, args...)
 
-function update(crf::Sequence; Θ=None)
-    if (Θ != None)
-        if (crf.Θ == Θ)
+function update(crf::Sequence; Θ::AbstractArray{Float64}=Float64[])
+    if !isempty(Θ)
+        if crf.Θ == Θ
             return
         end
-        crf.Θ[:] = Θ[:]
+        for i = 1:crf.k
+            crf.Θ[i] = Θ[i]
+        end
     end
 
     # Transition Matrix
@@ -116,8 +123,8 @@ function update(crf::Sequence; Θ=None)
     # Constant normalization factor
     crf.Z = logsumexp(crf.α[end])
 
+    # Calculate global feature vector if y is present
     if !isempty(crf.y)
-        # Global Feature Vector
         crf.F[:] = 0.0
         for t = 1:crf.n
             if t == 1
@@ -132,33 +139,30 @@ function update(crf::Sequence; Θ=None)
     end
 end
 
-function update{Tx,Ty}(crfs::Array{Sequence{Tx,Ty},1}; Θ=None)
-    if (Θ == None)
+function update(crfs::AbstractArray{Sequence}; Θ::AbstractArray{Float64}=Float64[])
+    if isempty(Θ)
         Θ = copy(crfs[1].Θ)
     end
-
     for crf in crfs
         update(crf, Θ=Θ)
     end
 end
 
-function loglikelihood(crf::Sequence; Θ=None)
-    if (Θ != None)
+function loglikelihood(crf::Sequence; Θ::AbstractArray{Float64}=Float64[])
+    if !isempty(Θ)
         update(crf, Θ=Θ)
     end
-
     return dot(crf.Θ, crf.F) - crf.Z - dot(crf.Θ, crf.Θ) / (crf.σ ^ 2)
 end
 
-function loglikelihood{Tx,Ty}(crfs::Array{Sequence{Tx,Ty},1}; Θ=None)
+function loglikelihood(crfs::AbstractArray{Sequence}; Θ::AbstractArray{Float64}=Float64[])
     sum([ loglikelihood(crf, Θ=Θ) for crf in crfs ])
 end
 
-function loglikelihood_gradient(crf::Sequence; Θ=None)
-    if (Θ != None) && (crf.Θ != Θ)
+function loglikelihood_gradient(crf::Sequence; Θ::AbstractArray{Float64}=Float64[])
+    if !isempty(Θ) && (crf.Θ != Θ)
         update(crf, Θ=Θ)
     end
-
     F = copy(crf.F)
     t = 1
     for (i, yi) = enumerate(crf.Y)
@@ -179,10 +183,14 @@ function loglikelihood_gradient(crf::Sequence; Θ=None)
             end
         end
     end
-    return F - (sum(crf.Θ) / crf.σ)
+    r = sum(crf.Θ) / crf.σ
+    for i = 1:crf.k
+        F[i] -= r
+    end
+    return F
 end
 
-function loglikelihood_gradient{Tx,Ty}(crfs::Array{Sequence{Tx,Ty},1}; Θ=None)
+function loglikelihood_gradient(crfs::AbstractArray{Sequence}; Θ::AbstractArray{Float64}=Float64[])
     sum([ loglikelihood_gradient(crf, Θ=Θ) for crf in crfs ])
 end
 
@@ -190,7 +198,7 @@ function label(crf::Sequence)
     d = zeros(crf.d)
     Q = zeros(crf.d, crf.d)
 
-    M = Any[]
+    M = AbstractArray{Int32}[]
     for t in 1:crf.n
         for i = 1:crf.d, j = 1:crf.d
             Q[i,j] = crf.M[t][i,j] + d[j]
@@ -204,13 +212,13 @@ function label(crf::Sequence)
         push!(M, m)
     end
 
-    result = [ indmax(d) ]
+    result = Int32[ indmax(d) ]
     for p in reverse(M)
         push!(result, p[result[end]])
     end
     return [ crf.Y[i] for i in reverse(result[2:end]) ]
 end
 
-function label{Tx,Ty}(crfs::Array{Sequence{Tx,Ty},1})
+function label(crfs::AbstractArray{Sequence})
     [ label(crf) for crf in crfs ]
 end

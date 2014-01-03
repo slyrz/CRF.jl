@@ -47,7 +47,7 @@ splice!(X, 1:5)
 splice!(Y, 1:5)
 
 # Create sequences
-crfs = Sequence[ Sequence(x, weather_features, Θ=weights, labels=labels) for x in X ]
+crfs = Sequence[ Sequence(x, features, Θ=weights, labels=labels) for x in X ]
 
 # Calling label on the array of sequences does the trick
 Y_true = Y

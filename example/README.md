@@ -71,11 +71,11 @@ typealias YT ASCIIString
 
 const labels = YT[ "sunny", "rainy", "foggy" ]
 
-function weather_features(yt::YT, x::Array{XT,1}, t::Int32)
+function weather_features(yt::YT, x::AbstractArray{XT}, t::Int32)
     weather_features("", yt, x, t)
 end
 
-function weather_features(yp::YT, yt::YT, x::Array{XT,1}, t::Int32)
+function weather_features(yp::YT, yt::YT, x::AbstractArray{XT}, t::Int32)
     res = Array(Float64, 9)
     idx = 1
     for ypval in labels, ytval in labels
@@ -87,9 +87,11 @@ end
 For the moment we'll ignore the fact that this feature function doesn't use
 our observations at all. This example is just meant to show you the basic
 principles.
+Instead of keeping track of the index yourself, you can use the Feature type,
+which basically just does that for you.
 
 ```julia
-function weather_features(yp::YT, yt::YT, x::Array{XT,1}, t::Int32)
+function weather_features(yp::YT, yt::YT, x::AbstractArray{XT}, t::Int32)
     res = Features(9)
     for ypval in labels, ytval in labels
         @append! res ((yp == ypval) & (yt == ytval))

@@ -8,9 +8,9 @@ include("features.jl")
 X, Y = load("weather.csv")
 
 # Use first 5 sequences for parameter estimation
-crfs = Sequence{XT, YT}[ ]
+crfs = Sequence[ ]
 for i = 1:5
-    push!(crfs, Sequence{XT, YT}(X[i], Y[i], weather_features))
+    push!(crfs, Sequence(X[i], Y[i], features))
 end
 
 # Since we are looking for parameters maximizing the loglikelihood function
