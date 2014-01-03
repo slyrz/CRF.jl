@@ -3,7 +3,6 @@
 This directory contains example code. The examples provided in this directory
 are intendet to show the basic usage of the CRF package. They are not meant to
 be an introduction to CRFs.
-
 The examples center around artificial sequences of weather observations.
 You can examine the data in the `weather.csv` file.
 The `weather.csv` file contains 50 sequences of 50 labeled observations
@@ -18,9 +17,28 @@ each. The sequences were sampled from a HMM.
 ....
 ```
 
+The following code loads the weather data
+
+```julia
+include("util.jl")
+
+X, Y = load("weater.csv")
+println(summary(X))
+println(summary(Y))
+```
+
+and should print out
+
+```
+50-element Array{Array{Array{Float64,1},1},1}
+50-element Array{Array{ASCIIString,1},1}
+```
+
+The following code snippets assume you already loaded the weather data.
+
 ## Feature Function
 
-We'll start with defining the *feature function*. The feature function
+We'll start with defining the feature function. The feature function
 represents a set of features. Features should be binary valued.
 The feature function should return an array of features, i.e. binary values.
 Though feature values should be binary, using a real numbered data type avoids
@@ -45,6 +63,41 @@ approach: two methods of the feature function:
 * `method (yt, x, t)` called for `t=1`
 * `method (yp, yt, x, t)` called for `t>1`
 
+An implementation of a feature function might look like this:
+
+```julia
+typealias XT Array{Float64,1}
+typealias YT ASCIIString
+
+const labels = YT[ "sunny", "rainy", "foggy" ]
+
+function weather_features(yt::YT, x::Array{XT,1}, t::Int32)
+    weather_features("", yt, x, t)
+end
+
+function weather_features(yp::YT, yt::YT, x::Array{XT,1}, t::Int32)
+    res = Array(Float64, 9)
+    idx = 1
+    for ypval in labels, ytval in labels
+        res[idx] = ((yp == ypval) & (yt == ytval)) ; idx += 1
+    end
+    return res
+end
+```
+For the moment we'll ignore the fact that this feature function doesn't use
+our observations at all. This example is just meant to show you the basic
+principles.
+
+```julia
+function weather_features(yp::YT, yt::YT, x::Array{XT,1}, t::Int32)
+    res = Features(9)
+    for ypval in labels, ytval in labels
+        @append! res ((yp == ypval) & (yt == ytval))
+    end
+    return convert(Array{Float64,1}, res)
+end
+```
+
 The file `features.jl` contains the feature function used in these examples.
 
 ## Parameter Estimation
@@ -64,6 +117,9 @@ Let us consider the case of a single observation and label sequence.
 Parameter estimation is done by
 
 ```julia
+x = X[1]
+y = Y[1]
+
 crf = Sequence(x, y, features)
 
 function f(x::Vector)
@@ -82,7 +138,7 @@ Parameter estimation over multiple sequences works quite similar, since
 sequences, too.
 
 ```julia
-crfs = Sequence[ Sequence(x, y, features) for (x,y) in X, Y ]
+crfs = Sequence[ Sequence(x, y, features) for (x, y) in zip(X[1:5], Y[1:5]) ]
 
 function f(x::Vector)
     -loglikelihood(crfs, Θ=x)
@@ -104,14 +160,14 @@ unlabeled observations. A single sequence of observations can be labeled
 using the following code:
 
 ```julia
+const labels = [ "sunny", "rainy", "foggy" ] # label alphabet
 const params = [ ... ] # estimated parameters
-const labels = [ ... ] # label alphabet
 
 crf = Sequence(x, features, Θ=params, labels=labels)
 y = label(crf)
 
 # Print observation - label pairs
-for (xi,yi) in zip(x,y)
+for (xi, yi) in zip(x, y)
     println(xi, yi)
 end
 ```
