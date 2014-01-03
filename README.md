@@ -3,9 +3,17 @@
 The CRF package implements linear-chain Conditional Random Fields.
 CRFs are a probabilistic framework for labeling sequential data.
 
-## Usage
+## Quichstart
 
-*Coming soon*
+```julia
+julia> using CRF
+julia> crf = Sequence(x, y, features)
+julia> loglikelihood(crf)
+julia> loglikelihood_gradient(crf)
+julia> label(crf)
+```
+
+The [example/](example directory) contains a detailed documentation.
 
 ## Further Reading
 
