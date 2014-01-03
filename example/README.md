@@ -45,6 +45,8 @@ approach: two methods of the feature function:
 * `method (yt, x, t)` called for `t=1`
 * `method (yp, yt, x, t)` called for `t>1`
 
+The file `features.jl` contains the feature function used in these examples.
+
 ## Parameter Estimation
 
 After you defined your feature function, you want to use labeled training
@@ -54,7 +56,6 @@ sequences of observations with corresponding sequences of desired labels.
 Parameter estimation is done by maximizing the loglikelihood function. The
 CRF package doesn't provide a function optimization algorithm. The following
 example uses the Optim package for this purpose.
-
 Since we are looking for parameters maximizing the loglikelihood function
 and Optim.optimize performs function minimization, we negate the
 loglikelihood and it's derivative.
@@ -76,5 +77,56 @@ end
 opt = optimize(f, g!, crf, method = :l_bfgs)
 ```
 
+Parameter estimation over multiple sequences works quite similar, since
+`loglikelihood` and `loglikelihood_gradient` functions accept arrays of
+sequences, too.
+
+```julia
+crfs = Sequence[ Sequence(x, y, features) for (x,y) in X, Y ]
+
+function f(x::Vector)
+    -loglikelihood(crfs, Θ=x)
+end
+
+function g!(x::Vector, storage::Vector)
+    storage[:] = -loglikelihood_gradient(crfs, Θ=x)
+end
+
+opt = optimize(f, g!, crfs, method = :l_bfgs)
+```
+
+The file `parameter_estimation.jl` contains a working example.
+
 ## Sequence Labeling
 
+Now we show how to use the estimated parameters for labeling
+unlabeled observations. A single sequence of observations can be labeled
+using the following code:
+
+```julia
+const params = [ ... ] # estimated parameters
+const labels = [ ... ] # label alphabet
+
+crf = Sequence(x, features, Θ=params, labels=labels)
+y = label(crf)
+
+# Print observation - label pairs
+for (xi,yi) in zip(x,y)
+    println(xi, yi)
+end
+```
+
+Since the labels aren't observed, we omit passing `y` to the constructor.
+We pass a set from which the labels are drawn as keyword `labels` instead.
+The `label` function returns an array of labels.
+Again, labeling multiple sequences is pretty similar to labeling a
+single sequence.
+
+```julia
+crfs = Sequence[ Sequence(x, features, Θ=params, labels=labels) for x in X ]
+Y = label(crfs)
+```
+
+Instead of returning a single array of labels, the `label` function returns
+an array of label arrays for multiple sequences. Have a look at `labeling.jl`
+to see a working example.
