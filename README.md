@@ -3,7 +3,7 @@
 The CRF package implements linear-chain Conditional Random Fields.
 CRFs are a probabilistic framework for labeling sequential data.
 
-## Quichstart
+## Quickstart
 
 ```julia
 julia> using CRF
@@ -13,7 +13,7 @@ julia> loglikelihood_gradient(crf)
 julia> label(crf)
 ```
 
-The [example/](example directory) contains a detailed documentation.
+The [example directory](example/) contains a detailed documentation.
 
 ## Further Reading
 
