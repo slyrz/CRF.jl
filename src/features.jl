@@ -4,8 +4,8 @@ import Base.empty!,
 
 type Features
     x::Array{Float64,1}
-    i::Int32
-    function Features(l::Int32)
+    i::Int
+    function Features(l::Int)
         new(zeros(Float64, l), 1)
     end
 end

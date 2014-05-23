@@ -23,11 +23,11 @@ product(itr...) = Product(itr)
 
 type ProductState
     val::Array{Array{Any,1},1} # values of each iterator ( 1:3 => [1:3] )
-    max::Array{Int32,1} # length of each iterator ( 1:3 => 3 )
-    idx::Array{Int32,1} # current index configuration
+    max::Array{Int,1} # length of each iterator ( 1:3 => 3 )
+    idx::Array{Int,1} # current index configuration
     sta::Array{Any,1} # current value configuration
     yld::Array{Any,1} # values to yield
-    p::Int32 # position of current iterator
+    p::Int # position of current iterator
 
     function ProductState(p::Product)
         res = new()

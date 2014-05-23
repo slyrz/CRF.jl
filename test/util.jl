@@ -5,7 +5,7 @@ using CRF
 import CRF.logsumexp, CRF.product, Base.rand
 
 # Helper function
-rand(lo::Int32,hi::Int32) = lo + abs(rand(Int32) % hi)
+rand(lo::Int,hi::Int) = lo + abs(rand(Int) % hi)
 
 # Test logsumexp function
 @test logsumexp([0.0:9.0]) == logsumexp([0:9]) == 9.4586297444267107
@@ -23,7 +23,7 @@ end
 
 N = 500
 for i = 1:N
-    itr = Range1{Int32}[ rand(1,2):rand(1,7) for j = 1:rand(1,7) ]
+    itr = Range1{Int}[ rand(1,2):rand(1,7) for j = 1:rand(1,7) ]
     if any([ l == 0 for l in map(length,itr) ])
         @test_throws(p = product(tuple(itr...)))
     else

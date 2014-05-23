@@ -4,11 +4,11 @@ using CRF
 
 import CRF.Sequence
 
-function feature_vector(yt::Bool, x::Array{Array{Float64,1},1}, t::Int32)
+function feature_vector(yt::Bool, x::Array{Array{Float64,1},1}, t::Int)
     feature_vector(false, yt, x, t)
 end
 
-function feature_vector(yp::Bool, yt::Bool, x::Array{Array{Float64,1},1}, t::Int32)
+function feature_vector(yp::Bool, yt::Bool, x::Array{Array{Float64,1},1}, t::Int)
     v = Features(4+20+20)
 
     for ypv in [true, false], ytv in [true, false]

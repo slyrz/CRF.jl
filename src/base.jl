@@ -5,9 +5,9 @@ type Sequence{Tx,Ty}
     y::Array{Ty,1} # label sequence
     Y::Array{Ty,1} # alphabet from which labels are drawn
 
-    n::Int32 # length of training data
-    d::Int32 # length of label alphabet
-    k::Int32 # number of features
+    n::Int # length of training data
+    d::Int # length of label alphabet
+    k::Int # number of features
 
     Z::Float64 # normalization constant
     σ::Float64 # regularization constant
@@ -198,12 +198,12 @@ function label(crf::Sequence)
     d = zeros(crf.d)
     Q = zeros(crf.d, crf.d)
 
-    M = AbstractArray{Int32}[]
+    M = AbstractArray{Int}[]
     for t in 1:crf.n
         for i = 1:crf.d, j = 1:crf.d
             Q[i,j] = crf.M[t][i,j] + d[j]
         end
-        m = zeros(Int32, crf.d)
+        m = zeros(Int, crf.d)
         for i = 1:crf.d
             j = indmax(Q[i,:])
             m[i] = j
@@ -212,7 +212,7 @@ function label(crf::Sequence)
         push!(M, m)
     end
 
-    result = Int32[ indmax(d) ]
+    result = Int[ indmax(d) ]
     for p in reverse(M)
         push!(result, p[result[end]])
     end
