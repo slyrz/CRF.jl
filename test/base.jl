@@ -5,6 +5,19 @@ using CRF
 import CRF.Sequence
 import CRF.logsumexp
 
+# Macro hiding the differences between test_throws in Julia v0.2 and v0.3.
+macro test_error(error, expression)
+    if VERSION < v"0.3.0-prerelease"
+        quote
+            @test_throws $(expression)
+        end
+    else
+        quote
+            @test_throws $(error) $(expression)
+        end
+    end
+end
+
 function feature_vector(yt::Bool, x::Array{Array{Float64,1},1}, t::Int)
     feature_vector(false, yt, x, t)
 end
@@ -57,13 +70,13 @@ s = Sequence(X, feature_vector; labels=unique(Y))
 @test sum(s.F) == 0
 
 # Unlabeld data without label alphabet shouldn't work
-@test_throws s = Sequence(X, feature_vector)
+@test_error UndefVarError s = Sequence(X, feature_vector)
 
 # Observation / label mismatch shouldn't work
-@test_throws s = Sequence(X[2:end], Y, feature_vector)
+@test_error ArgumentError s = Sequence(X[2:end], Y, feature_vector)
 
 # Feature / weight mismatch shouldn't work
-@test_throws s = Sequence(X, Y, feature_vector; Θ=rand(2))
+@test_error ArgumentError s = Sequence(X, Y, feature_vector; Θ=rand(2))
 
 # Test logsumexp function
 @test logsumexp([0.0:9.0]) == logsumexp([0:9]) == 9.4586297444267107
