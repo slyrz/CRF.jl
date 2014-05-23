@@ -8,7 +8,6 @@ export
     loglikelihood,
     loglikelihood_gradient,
     update,
-    product
 
 include("base.jl")
 include("features.jl")

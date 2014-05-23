@@ -3,6 +3,7 @@ using Base.Test
 using CRF
 
 import CRF.Sequence
+import CRF.logsumexp
 
 function feature_vector(yt::Bool, x::Array{Array{Float64,1},1}, t::Int)
     feature_vector(false, yt, x, t)
@@ -55,7 +56,6 @@ s = Sequence(X, feature_vector; labels=unique(Y))
 @test isempty(s.y)
 @test sum(s.F) == 0
 
-
 # Unlabeld data without label alphabet shouldn't work
 @test_throws s = Sequence(X, feature_vector)
 
@@ -64,3 +64,6 @@ s = Sequence(X, feature_vector; labels=unique(Y))
 
 # Feature / weight mismatch shouldn't work
 @test_throws s = Sequence(X, Y, feature_vector; Θ=rand(2))
+
+# Test logsumexp function
+@test logsumexp([0.0:9.0]) == logsumexp([0:9]) == 9.4586297444267107

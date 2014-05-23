@@ -3,7 +3,6 @@ using CRF
 tests = [
     "base.jl",
     "features.jl",
-    "util.jl"
 ]
 
 for test in tests
