@@ -7,7 +7,7 @@ export
     label,
     loglikelihood,
     loglikelihood_gradient,
-    update,
+    update
 
 include("base.jl")
 include("features.jl")
