@@ -2,7 +2,7 @@ import Base.empty!,
        Base.size,
        Base.convert
 
-type Features
+mutable struct Features
     x::Array{Float64,1}
     i::Int
     function Features(l::Int)
@@ -18,7 +18,7 @@ macro append!(v,w)
 end
 
 function empty!(v::Features)
-    v.i = 1 ; v.x[:] = 0
+    v.i = 1 ; v.x .= 0
 end
 
 function size(v::Features)

@@ -5,7 +5,7 @@ include("util.jl")
 include("features.jl")
 
 # Load weather data
-X, Y = load("weather.csv")
+X, Y = load("example/weather.csv")
 
 # Use first 5 sequences for parameter estimation
 crfs = Sequence[ ]
@@ -21,10 +21,12 @@ function f(x::Vector)
 end
 
 function g!(x::Vector, storage::Vector)
-    storage[:] = -loglikelihood_gradient(crfs, Θ=x)
+    storage .= -loglikelihood_gradient(crfs, Θ=x)
 end
 
-result = optimize(f, g!, crfs[1].Θ, method = :l_bfgs, iterations=15, show_trace=true)
+l_bfgs = LBFGS()
+result = optimize(f, g!, crfs[1].Θ, l_bfgs,
+                  Optim.Options(iterations=15, show_trace=true))
 
 println("Minimum: ", result.f_minimum)
 println("Parameters: ", result.minimum)

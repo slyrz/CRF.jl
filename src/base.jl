@@ -1,6 +1,7 @@
 import Base.ArgumentError
+import LinearAlgebra.dot
 
-type Sequence{Tx,Ty}
+mutable struct Sequence{Tx,Ty}
     x::Array{Tx,1} # observation sequence
     y::Array{Ty,1} # label sequence
     Y::Array{Ty,1} # alphabet from which labels are drawn
@@ -21,12 +22,12 @@ type Sequence{Tx,Ty}
     f::Function # function returning feature vector
     F::Array{Float64, 1} # sum of feature vectors 1:n
 
-    function Sequence{Tx,Ty}(x::AbstractArray{Tx},
-                             y::AbstractArray{Ty},
-                             f::Function;
-                             labels::AbstractArray{Ty}=Ty[],
-                             Θ::AbstractArray{Float64}=Float64[],
-                             σ::Float64=50.0)
+    function Sequence(x::AbstractArray{Tx},
+                      y::AbstractArray{Ty},
+                      f::Function;
+                      labels::AbstractArray{Ty}=Ty[],
+                      Θ::AbstractArray{Float64}=Float64[],
+                      σ::Float64=50.0) where {Tx,Ty}
 
         # If x are unlabeled observations, the labels keyword must provide the
         # alphabet from which labels are drawn.
@@ -40,7 +41,7 @@ type Sequence{Tx,Ty}
             end
         end
 
-        res = new()
+        res = new{Tx,Ty}()
         res.x = x
         res.y = y
 
@@ -54,9 +55,9 @@ type Sequence{Tx,Ty}
         res.σ = σ
         res.Z = 0.0
 
-        res.n, = size(res.x)
-        res.d, = size(res.Y)
-        res.k, = size(res.f(res.Y[1], res.Y[1], res.x, 1))
+        res.n, = length(res.x)
+        res.d, = length(res.Y)
+        res.k, = length(res.f(res.Y[1], res.Y[1], res.x, 1))
 
         res.M = [ zeros(res.d, res.d) for t = 1:res.n ]
         res.α = [ zeros(res.d) for t = 1:res.n ]
@@ -78,8 +79,8 @@ type Sequence{Tx,Ty}
     end
 end
 
-Sequence{Tx,Ty}(x::AbstractArray{Tx}, y::AbstractArray{Ty}, f::Function; args...) = Sequence{Tx,Ty}(x, y, f; args...)
-Sequence{Tx,Ty}(x::AbstractArray{Tx}, f::Function; labels::AbstractArray{Ty}=Ty[], args...) = Sequence{Tx,Ty}(x, Ty[], f; labels=labels, args...)
+#Sequence(x::AbstractArray{Tx}, y::AbstractArray{Ty}, f::Function; args...) where {Tx,Ty} = Sequence{Tx,Ty}(x, y, f; args...)
+Sequence(x::AbstractArray{Tx}, f::Function; labels::AbstractArray{Ty}=Ty[], args...) where {Tx,Ty} = Sequence(x, Ty[], f; labels=labels, args...)
 
 function update(crf::Sequence; Θ::AbstractArray{Float64}=Float64[])
     if !isempty(Θ)
@@ -125,7 +126,7 @@ function update(crf::Sequence; Θ::AbstractArray{Float64}=Float64[])
 
     # Calculate global feature vector if y is present
     if !isempty(crf.y)
-        crf.F[:] = 0.0
+        crf.F .= 0.0
         for t = 1:crf.n
             if t == 1
                 v = crf.f(crf.y[t], crf.x, t)
@@ -205,14 +206,14 @@ function label(crf::Sequence)
         end
         m = zeros(Int, crf.d)
         for i = 1:crf.d
-            j = indmax(Q[i,:])
+            j = argmax(Q[i,:])
             m[i] = j
             d[i] = Q[i,j]
         end
         push!(M, m)
     end
 
-    result = Int[ indmax(d) ]
+    result = Int[ argmax(d) ]
     for p in reverse(M)
         push!(result, p[result[end]])
     end

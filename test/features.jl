@@ -1,5 +1,5 @@
 using Base
-using Base.Test
+using Test
 using CRF
 
 v = Features(100)

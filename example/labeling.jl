@@ -1,4 +1,5 @@
 using CRF
+using Printf
 
 include("util.jl")
 include("features.jl")
@@ -54,17 +55,19 @@ Y_true = Y
 Y_pred = label(crfs)
 
 # Let's compare the predicted labels with the hidden labels
-error = 0
-total = 0
-for (y_true, y_pred) in zip(Y_true, Y_pred)
-    for (lt, lp) in zip(y_true, y_pred)
-        print((lt == lp) ? output_succ : output_fail)
-        total += 1
-        error += (lt != lp)
+let
+    error = 0
+    total = 0
+    for (y_true, y_pred) in zip(Y_true, Y_pred)
+        for (lt, lp) in zip(y_true, y_pred)
+            print((lt == lp) ? output_succ : output_fail)
+            total += 1
+            error += (lt != lp)
+        end
+        print(" ")
     end
-    print(" ")
-end
-print("\n")
+    print("\n")
 
-@printf "Total: %6d\n" total
-@printf "Error: %6d (%.2f %%)\n" error ((error / total) * 100.0)
+    @printf "Total: %6d\n" total
+    @printf "Error: %6d (%.2f %%)\n" error ((error / total) * 100.0)
+end
