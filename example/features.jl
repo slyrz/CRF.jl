@@ -1,5 +1,5 @@
-typealias XT Array{Float64,1}
-typealias YT ASCIIString
+const XT = Array{Float64,1}
+const YT = String
 
 const labels = YT[ "sunny", "rainy", "foggy" ]
 

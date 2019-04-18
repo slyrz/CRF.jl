@@ -1,5 +1,5 @@
 using Base
-using Base.Test
+using Test
 using CRF
 
 import CRF.Sequence
@@ -79,4 +79,4 @@ s = Sequence(X, feature_vector; labels=unique(Y))
 @test_error ArgumentError s = Sequence(X, Y, feature_vector; Θ=rand(2))
 
 # Test logsumexp function
-@test logsumexp([0.0:9.0]) == logsumexp([0:9]) == 9.4586297444267107
+@test logsumexp([0.0:9.0...]) == logsumexp([0:9...]) == 9.4586297444267107

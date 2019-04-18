@@ -1,8 +1,5 @@
-function logsumexp{I<:Number}(x::AbstractArray{I})
+function logsumexp(x::AbstractArray{I}) where {I<:Number}
     m = maximum(x)
-    r = 0.0
-    for i = 1:endof(x)
-        r += exp(x[i] - m)
-    end
+    r = sum(i -> exp(i - m), x)
     return log(r) + m
 end

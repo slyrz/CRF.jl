@@ -22,7 +22,7 @@ The following code loads the weather data
 ```julia
 include("util.jl")
 
-X, Y = load("weater.csv")
+X, Y = load("weather.csv")
 println(summary(X))
 println(summary(Y))
 ```
@@ -31,7 +31,7 @@ and should print out
 
 ```
 50-element Array{Array{Array{Float64,1},1},1}
-50-element Array{Array{ASCIIString,1},1}
+50-element Array{Array{String,1},1}
 ```
 
 The following code snippets assume you already loaded the weather data.
@@ -66,8 +66,8 @@ approach: two methods of the feature function:
 An implementation of a feature function might look like this:
 
 ```julia
-typealias XT Array{Float64,1}
-typealias YT ASCIIString
+const XT = Array{Float64,1}
+const YT = String
 
 const labels = YT[ "sunny", "rainy", "foggy" ]
 
@@ -129,10 +129,11 @@ function f(x::Vector)
 end
 
 function g!(x::Vector, storage::Vector)
-    storage[:] = -loglikelihood_gradient(crf, Θ=x)
+    storage .= -loglikelihood_gradient(crf, Θ=x)
 end
 
-opt = optimize(f, g!, crf, method = :l_bfgs)
+result = optimize(f, g!, crfs[1].Θ, LBFGS(),
+                  Optim.Options(iterations=15, show_trace=true))
 ```
 
 Parameter estimation over multiple sequences works quite similar, since
@@ -147,13 +148,20 @@ function f(x::Vector)
 end
 
 function g!(x::Vector, storage::Vector)
-    storage[:] = -loglikelihood_gradient(crfs, Θ=x)
+    storage .= -loglikelihood_gradient(crfs, Θ=x)
 end
 
-opt = optimize(f, g!, crfs, method = :l_bfgs)
+result = optimize(f, g!, crfs[1].Θ, LBFGS(),
+                  Optim.Options(iterations=15, show_trace=true))
 ```
 
 The file `parameter_estimation.jl` contains a working example.
+
+```
+using CRF
+include(joinpath(dirname(pathof(CRF)), "..", "example", "parameter_estimation.jl"))
+```
+
 
 ## Sequence Labeling
 
@@ -188,3 +196,7 @@ Y = label(crfs)
 Instead of returning a single array of labels, the `label` function returns
 an array of label arrays for multiple sequences. Have a look at `labeling.jl`
 to see a working example.
+```
+using CRF
+include(joinpath(dirname(pathof(CRF)), "..", "example", "labeling.jl"))
+```
