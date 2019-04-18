@@ -41,7 +41,7 @@ const weights = [
 
 
 # Load weather data
-X, Y = load("weather.csv")
+X, Y = load(joinpath(@__DIR__, "weather.csv"))
 
 # Remove sequences we used for parameter estimation
 splice!(X, 1:5)

@@ -5,7 +5,7 @@ include("util.jl")
 include("features.jl")
 
 # Load weather data
-X, Y = load("example/weather.csv")
+X, Y = load(joinpath(@__DIR__, "weather.csv"))
 
 # Use first 5 sequences for parameter estimation
 crfs = Sequence[ ]
